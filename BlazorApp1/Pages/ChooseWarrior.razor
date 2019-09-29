@@ -1,0 +1,272 @@
+@page "/choosewarrior"
+
+@using BlazorApp1.Data
+@inject BlazorApp1.Application.Contracts.IFightService FightService
+
+@if (!combatReady)
+{
+    <h1>Choose warriors!</h1>
+    @if (!playersPresent)
+    {
+        <label>Players missing for this game!</label>
+    }
+    else
+    {
+        <table width="70%" class="form-group">
+            <tr>
+                <td>
+                    <p>
+                        <label>Player 1: <u>@playerOne.Nickname</u></label>
+                    </p>
+                </td>
+                <td>
+                    <p>
+                        <label>Player 2: <u>@playerTwo.Nickname</u></label>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @foreach (var item in warriorsP1)
+                    {
+                        <p>
+                            <button class="btn btn-primary" @onclick="@(() => W1Selected(@item))">Select @item.Name, @item.Class</button>
+                        </p>
+                    }
+                    <p>@selectedWarriorOne.Name - @selectedWarriorOne.Class</p>
+                </td>
+
+                <td>
+                    @foreach (var item in warriorsP2)
+                    {
+                        <p>
+                            <button class="btn btn-primary" @onclick="@(() => W2Selected(@item))">Select @item.Name, @item.Class</button>
+                        </p>
+                    }
+                    <p>@selectedWarriorTwo.Name - @selectedWarriorTwo.Class</p>
+                </td>
+            </tr>
+
+        </table>
+    }
+}
+else
+{
+    <h1>Combat!</h1>
+    <table width="70%" class="form-group">
+
+        <tr>
+            <td>
+                <p>
+                    @if (!string.IsNullOrEmpty(@selectedWarriorOne.ImageUrl))
+                    {
+                        <img src="@selectedWarriorOne.ImageUrl" height="100" width="100" />
+                    }
+                </p>
+            </td>
+
+            <td>
+                <p>
+                    @if (!string.IsNullOrEmpty(@selectedWarriorTwo.ImageUrl))
+                    {
+                        <img src="@selectedWarriorOne.ImageUrl" height="100" width="100" />
+                    }
+                </p>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <p>
+                    <label>@playerOne.Nickname - @selectedWarriorOne.Name</label>
+                </p>
+            </td>
+
+            <td>
+                <p>
+                    <label>@playerTwo.Nickname - @selectedWarriorTwo.Name</label>
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <p>
+                    <label>Defense: @selectedWarriorOne.Defense</label>
+                </p>
+            </td>
+
+            <td>
+                <p>
+                    <label>Defense: @selectedWarriorTwo.Defense</label>
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <p>
+                    <label>Strength: @selectedWarriorOne.Strength</label>
+                </p>
+            </td>
+
+            <td>
+                <p>
+                    <label>Strength: @selectedWarriorTwo.Strength</label>
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <p>
+                    <label>Magic: @selectedWarriorOne.Magic</label>
+                </p>
+            </td>
+
+            <td>
+                <p>
+                    <label>Magic: @selectedWarriorTwo.Magic</label>
+                </p>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                @if (isPlayerOneDead)
+                {
+                    <p>
+                        <button class="btn btn-danger" disabled>DEAD</button>
+                    </p>
+                }
+                else
+                {
+                    <p>
+                        <button class="btn btn-danger" @onclick="AttackP1">Attack</button>
+                    </p>
+                    <p>
+                        <button class="btn btn-warning" @onclick="SpellP1">Cast spell</button>
+                    </p>
+                }
+            </td>
+
+            <td>
+                @if (isPlayerTwoDead)
+                {
+                    <p>
+                        <button class="btn btn-danger" disabled>DEAD</button>
+                    </p>
+                }
+                else
+                {
+                    <p>
+                        <button class="btn btn-danger" @onclick="AttackP2">Attack</button>
+                    </p>
+                    <p>
+                        <button class="btn btn-warning" @onclick="SpellP2">Cast spell</button>
+                    </p>
+                }
+            </td>
+        </tr>
+
+    </table>
+}
+
+
+@code {
+
+    BlazorApp1.DataAccess.Entities.Game game;
+
+    BlazorApp1.DataAccess.Entities.Player playerOne;
+    BlazorApp1.DataAccess.Entities.Player playerTwo;
+
+    BlazorApp1.DataAccess.Entities.Warrior selectedWarriorOne = new DataAccess.Entities.Warrior();
+    BlazorApp1.DataAccess.Entities.Warrior selectedWarriorTwo = new DataAccess.Entities.Warrior();
+
+    List<BlazorApp1.DataAccess.Entities.Warrior> warriors;
+    List<BlazorApp1.DataAccess.Entities.Warrior> warriorsP1;
+    List<BlazorApp1.DataAccess.Entities.Warrior> warriorsP2;
+
+    List<BlazorApp1.DataAccess.Entities.Player> players;
+
+    bool playersPresent = false;
+    bool playerOneMissing = true;
+    bool playerTwoMissing = true;
+
+    bool isPlayerOneDead = false;
+    bool isPlayerTwoDead = false;
+
+    bool combatReady = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        game = FightService.GetLastGame();
+        players = FightService.GetPlayersLastGame(game);
+
+        if (players != null && players.Count == 2)
+        {
+            playersPresent = true;
+
+            playerOne = players.ElementAt(0);
+            Console.WriteLine(playerOne.Nickname);
+            playerTwo = players.ElementAt(1);
+            Console.WriteLine(playerTwo.Nickname);
+        }
+        warriors = await FightService.GetAllWarriors();
+
+        warriorsP1 = warriors;
+        warriorsP2 = warriors;
+    }
+
+    private async Task W2Selected(BlazorApp1.DataAccess.Entities.Warrior w)
+    {
+        selectedWarriorTwo = w;
+        await FightService.SelectWarrior(playerTwo, selectedWarriorTwo);
+        playerTwoMissing = false;
+
+        warriorsP1 = await FightService.GetNonSelectedWarriors(selectedWarriorTwo);
+
+        CheckCombatReady();
+    }
+
+    private async Task W1Selected(BlazorApp1.DataAccess.Entities.Warrior w)
+    {
+        selectedWarriorOne = w;
+        await FightService.SelectWarrior(playerOne, selectedWarriorOne);
+        playerOneMissing = false;
+
+        warriorsP2 = await FightService.GetNonSelectedWarriors(selectedWarriorOne);
+
+        CheckCombatReady();
+    }
+
+    private void CheckCombatReady()
+    {
+        combatReady = !playerTwoMissing && !playerOneMissing;
+    }
+
+    public async Task AttackP1()
+    {
+        selectedWarriorTwo = await FightService.Attack(playerOne.Warrior, playerTwo.Warrior);
+
+        isPlayerTwoDead = selectedWarriorTwo.Defense <= 0;
+    }
+
+    public async Task AttackP2()
+    {
+        selectedWarriorOne = await FightService.Attack(playerTwo.Warrior, playerOne.Warrior);
+
+        isPlayerOneDead = selectedWarriorOne.Defense <= 0;
+    }
+
+    public async Task SpellP1()
+    {
+        selectedWarriorTwo = await FightService.CastSpell(playerOne.Warrior, playerTwo.Warrior);
+
+        isPlayerTwoDead = selectedWarriorTwo.Defense <= 0;
+    }
+
+    public async Task SpellP2()
+    {
+        selectedWarriorOne = await FightService.CastSpell(playerTwo.Warrior, playerOne.Warrior);
+
+        isPlayerOneDead = selectedWarriorOne.Defense <= 0;
+    }
+}

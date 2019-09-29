@@ -1,0 +1,59 @@
+﻿@page "/warrior"
+
+@using BlazorApp1.Data
+@inject BlazorApp1.Application.Contracts.IFightService FightService
+
+<h1>Warriors</h1>
+
+<p>
+    <button class="btn btn-success" @onclick="RestoreDefense">Heal all warriors</button>
+</p>
+
+@if (warriors == null)
+{
+	<p><em>Loading warrior data...</em></p>
+}
+else
+{
+	<table class="table">
+		<thead>
+			<tr>
+                <th>Image</th>
+				<th>Name</th>
+				<th>Class</th>
+				<th>Stregth</th>
+				<th>Magic</th>
+				<th>Defense</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var warrior in warriors)
+			{
+			<tr>
+                <td>
+                    <img src="@warrior.ImageUrl" height="100" width="100"/>
+                </td>
+				<td>@warrior.Name</td>
+				<td>@warrior.Class</td>
+				<td>@warrior.Strength</td>
+				<td>@warrior.Magic</td>
+				<td>@warrior.Defense</td>
+			</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@code {
+    List<BlazorApp1.DataAccess.Entities.Warrior> warriors;
+
+    protected override async Task OnInitializedAsync()
+    {
+        warriors = await FightService.GetAllWarriors();
+    }
+
+    public async Task RestoreDefense()
+    {
+        await FightService.RestoreDefense();
+    }
+}

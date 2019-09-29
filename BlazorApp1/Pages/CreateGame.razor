@@ -1,0 +1,88 @@
+﻿@page "/creategame"
+
+@using BlazorApp1.Data
+@inject BlazorApp1.Application.Contracts.IFightService FightService
+
+<h1>Create game</h1>
+
+@if (!gameCreated) {
+    <button class="btn btn-primary" @onclick="CreateNewGame">Create game</button>
+}
+
+@if (gameCreated) {
+    <EditForm Model="@playerOne">
+
+        <table class="form-group">
+            <tr>
+                <td>
+                    <p>
+                        <label>Player 1 nickname:</label>
+                        <InputText id="name" @bind-Value="playerOne.Nickname" />
+                    </p>
+                </td>
+                <td>
+                    @if (playerOneMissing)
+                    {
+                        <p>
+                            <button class="btn btn-primary" @onclick="CreatePlayerOne">Create player one</button>
+                        </p>
+                    }
+                </td>
+
+            </tr>
+        </table>
+    </EditForm>
+
+    <EditForm Model="@playerTwo">
+        <table class="form-group">
+            <tr>
+                <td>
+                    <p>
+                        <label>Player 2 nickname:</label>
+                        <InputText id="name" @bind-Value="playerTwo.Nickname" />
+                    </p>
+                </td>
+
+                <td>
+                    @if (playerTwoMissing)
+                    {
+                        <p>
+                            <button class="btn btn-primary" @onclick="CreatePlayerTwo">Create player two</button>
+                        </p>
+                    }
+                </td>
+            </tr>
+
+        </table>
+
+    </EditForm>
+}
+
+@code {
+    BlazorApp1.DataAccess.Entities.Game game = new BlazorApp1.DataAccess.Entities.Game();
+
+    BlazorApp1.DataAccess.Entities.Player playerOne = new BlazorApp1.DataAccess.Entities.Player();
+    BlazorApp1.DataAccess.Entities.Player playerTwo = new BlazorApp1.DataAccess.Entities.Player();
+
+    bool gameCreated = false;
+    bool playerOneMissing = true;
+    bool playerTwoMissing = true;
+
+    public async Task CreateNewGame()
+    {
+        gameCreated = true;
+        game = await FightService.CreateGame(game);
+    }
+
+    public async Task CreatePlayerOne()
+    {
+        playerOneMissing = false;
+        await FightService.AddPlayer(playerOne, game);
+    }
+
+    public async Task CreatePlayerTwo()
+    {
+        playerTwoMissing = false;
+        await FightService.AddPlayer(playerTwo, game);
+    }
+}

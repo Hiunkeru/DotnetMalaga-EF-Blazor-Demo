@@ -1,0 +1,87 @@
+﻿@page "/addwarrior"
+
+@using BlazorApp1.Data
+@inject BlazorApp1.Application.Contracts.IFightService FightService
+
+<h1>Add new warrior</h1>
+
+<EditForm Model="@newWarrior">
+
+    <table width="70%" class="form-group">
+        <tr>
+            <td>
+                <p>
+                    <label>Character name:</label>
+                    <InputText id="name" @bind-Value="newWarrior.Name" />
+                </p>
+            </td>
+            <td>
+                <p>
+                    <label>Class</label>
+                    <InputSelect id="class" @bind-Value="newWarrior.Class">
+                        <option value="None">Select class...</option>
+                        <option value="Warrior">Warrior</option>
+                        <option value="Mage">Mage</option>
+                        <option value="Rogue">Rogue</option>
+                    </InputSelect>
+                </p>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <p>
+                    <label>Defense</label>
+                    <InputNumber id="defense" @bind-Value="newWarrior.Defense"/>
+                </p>
+            </td>
+
+            <td>
+                <p>
+                    <label>Magic</label>
+                    <InputNumber id="strenght" @bind-Value="newWarrior.Magic"/>
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <p>
+                    <label>Strength</label>
+                    <InputNumber id="strength" @bind-Value="newWarrior.Strength" />
+                </p>
+            </td>
+            <td>
+                <p>
+                    <label>Image URL</label>
+                    <InputText id="url" @bind-Value="newWarrior.ImageUrl" />
+                </p>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+               <button class="btn btn-primary" @onclick="AddNewWarrior">Add!</button>
+            </td>
+        </tr>
+
+    </table>
+
+</EditForm>
+
+@code {
+    BlazorApp1.DataAccess.Entities.Warrior newWarrior = new BlazorApp1.DataAccess.Entities.Warrior();
+
+    public async Task AddNewWarrior()
+    {
+        var result = await FightService.AddWarrior(newWarrior);
+        if (result == null)
+        {
+            Console.WriteLine("Fail at add new character");
+        }
+        else
+        {
+            Console.WriteLine("Success at add new character");
+            newWarrior = new BlazorApp1.DataAccess.Entities.Warrior();
+        }
+    }
+}
